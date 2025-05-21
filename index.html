@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yuan's Border Collie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .dog-container {
+            transition: all 0.3s ease;
+        }
+        .bounce {
+            animation: bounce 0.5s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-blue-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="bg-white shadow-md rounded-lg p-4 mb-8">
+            <h1 class="text-3xl font-bold text-center text-gray-800">Yuan's Border Collie</h1>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Dog Interaction Area -->
+            <div class="md:col-span-2 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Play with Yuan's Border Collie</h2>
+                
+                <div class="flex flex-col items-center">
+                    <div id="dogImage" class="dog-container mb-6">
+                        <img src="https://placedog.net/300/300?random" alt="Border Collie" class="w-64 h-64 rounded-full">
+                    </div>
+                    
+                    <div id="reactionMessage" class="text-lg font-medium text-center h-8 mb-6"></div>
+                    
+                    <div class="w-full bg-gray-100 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-2">Dog Stats</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Happiness</span>
+                                    <span id="happinessValue" class="text-sm">50%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="happinessBar" class="bg-yellow-400 h-2.5 rounded-full progress-bar" style="width: 50%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Energy</span>
+                                    <span id="energyValue" class="text-sm">70%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="energyBar" class="bg-green-500 h-2.5 rounded-full progress-bar" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Hunger</span>
+                                    <span id="hungerValue" class="text-sm">30%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div id="hungerBar" class="bg-red-500 h-2.5 rounded-full progress-bar" style="width: 30%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Toy Selection -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Select a Toy</h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="ball">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🎾</div>
+                            <span class="font-medium">Ball</span>
+                        </div>
+                    </button>
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="frisbee">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🥏</div>
+                            <span class="font-medium">Frisbee</span>
+                        </div>
+                    </button>
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="bone">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🦴</div>
+                            <span class="font-medium">Bone</span>
+                        </div>
+                    </button>
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="rope">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🧶</div>
+                            <span class="font-medium">Rope</span>
+                        </div>
+                    </button>
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="food">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🍖</div>
+                            <span class="font-medium">Food</span>
+                        </div>
+                    </button>
+                    <button class="toy-btn bg-blue-100 hover:bg-blue-200 p-4 rounded-lg" data-toy="plush">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🧸</div>
+                            <span class="font-medium">Plush Toy</span>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <p class="text-yellow-700"><strong>Tip:</strong> Border Collies are highly intelligent and energetic. Keep them happy with regular play!</p>
+                </div>
+            </div>
+        </main>
+        
+        <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Activity Log</h2>
+            <div id="activityLog" class="bg-gray-100 p-4 rounded-lg h-40 overflow-y-auto">
+                <p class="text-sm text-gray-600">Welcome to Yuan's Border Collie! Select a toy to start playing.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const game = {
+            happiness: 50,
+            energy: 70,
+            hunger: 30,
+            selectedToy: null
+        };
+
+        // DOM elements
+        const dogImage = document.getElementById('dogImage');
+        const reactionMessage = document.getElementById('reactionMessage');
+        const happinessBar = document.getElementById('happinessBar');
+        const happinessValue = document.getElementById('happinessValue');
+        const energyBar = document.getElementById('energyBar');
+        const energyValue = document.getElementById('energyValue');
+        const hungerBar = document.getElementById('hungerBar');
+        const hungerValue = document.getElementById('hungerValue');
+        const activityLog = document.getElementById('activityLog');
+        const toyButtons = document.querySelectorAll('.toy-btn');
+
+        // Initialize
+        updateStats();
+        setInterval(updateNeeds, 10000);
+
+        // Event listeners
+        toyButtons.forEach(button => {
+            button.addEventListener('click', selectToy);
+        });
+        
+        dogImage.addEventListener('click', interactWithDog);
+
+        // Functions
+        function selectToy(e) {
+            game.selectedToy = e.currentTarget.getAttribute('data-toy');
+            
+            // Highlight selected toy
+            toyButtons.forEach(btn => {
+                btn.classList.remove('bg-blue-300');
+                btn.classList.add('bg-blue-100');
+            });
+            e.currentTarget.classList.remove('bg-blue-100');
+            e.currentTarget.classList.add('bg-blue-300');
+            
+            addLogEntry(`Selected ${game.selectedToy} toy`);
+        }
+
+        function interactWithDog() {
+            if (!game.selectedToy) {
+                reactionMessage.textContent = "Please select a toy first!";
+                reactionMessage.className = "text-lg font-medium text-center h-8 mb-6 text-red-500";
+                return;
+            }
+            
+            // Animate dog
+            dogImage.classList.add('bounce');
+            setTimeout(() => {
+                dogImage.classList.remove('bounce');
+            }, 500);
+            
+            // Process interaction
+            let message = "";
+            
+            switch(game.selectedToy) {
+                case 'ball':
+                    game.energy = Math.max(0, game.energy - 10);
+                    game.happiness = Math.min(100, game.happiness + 10);
+                    message = "Yuan's Border Collie loves chasing the ball!";
+                    break;
+                case 'frisbee':
+                    game.energy = Math.max(0, game.energy - 15);
+                    game.happiness = Math.min(100, game.happiness + 15);
+                    message = "Amazing frisbee catch!";
+                    break;
+                case 'bone':
+                    game.hunger = Math.max(0, game.hunger - 15);
+                    game.happiness = Math.min(100, game.happiness + 5);
+                    message = "Yuan's collie happily chews the bone.";
+                    break;
+                case 'rope':
+                    game.energy = Math.max(0, game.energy - 5);
+                    game.happiness = Math.min(100, game.happiness + 15);
+                    message = "Tug-of-war is so much fun!";
+                    break;
+                case 'food':
+                    game.hunger = Math.max(0, game.hunger - 20);
+                    game.energy = Math.min(100, game.energy + 5);
+                    message = "Yummy treats!";
+                    break;
+                case 'plush':
+                    game.happiness = Math.min(100, game.happiness + 10);
+                    message = "Yuan's collie carries the plush toy around.";
+                    break;
+            }
+            
+            // Update UI
+            updateStats();
+            reactionMessage.textContent = message;
+            reactionMessage.className = "text-lg font-medium text-center h-8 mb-6 text-green-600";
+            
+            // Add to log
+            addLogEntry(message);
+        }
+
+        function updateStats() {
+            happinessBar.style.width = `${game.happiness}%`;
+            happinessValue.textContent = `${game.happiness}%`;
+            energyBar.style.width = `${game.energy}%`;
+            energyValue.textContent = `${game.energy}%`;
+            hungerBar.style.width = `${game.hunger}%`;
+            hungerValue.textContent = `${game.hunger}%`;
+        }
+
+        function updateNeeds() {
+            // Gradually decrease stats over time
+            game.happiness = Math.max(0, game.happiness - 5);
+            game.energy = Math.min(100, game.energy + 5); // Energy recovers when resting
+            game.hunger = Math.min(100, game.hunger + 10);
+            
+            updateStats();
+            
+            // Add log messages if stats are critical
+            if (game.hunger > 70) {
+                addLogEntry("Yuan's Border Collie is getting hungry!");
+            }
+            if (game.happiness < 30) {
+                addLogEntry("Yuan's Border Collie seems bored.");
+            }
+            if (game.energy < 20) {
+                addLogEntry("Yuan's Border Collie is tired.");
+            }
+        }
+
+        function addLogEntry(message) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            
+            const entry = document.createElement('p');
+            entry.className = 'text-sm text-gray-600';
+            entry.textContent = `${timeString}: ${message}`;
+            
+            activityLog.prepend(entry);
+            
+            // Limit to 10 entries
+            if (activityLog.children.length > 10) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>
