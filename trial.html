@@ -1,438 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Countdown</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #fff5f7;
-            color: #4a4a4a;
-            margin: 0;
-            overflow-x: hidden;
-        }
-        
-        #globe-container {
-            width: 100%;
-            height: 60vh;
-            position: relative;
-        }
-        
-        .city-marker {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background-color: #ec4899;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 10;
-            pointer-events: auto;
-        }
-        
-        .city-marker:hover {
-            transform: translate(-50%, -50%) scale(1.5);
-            background-color: #db2777;
-        }
-        
-        .city-marker.active {
-            background-color: #db2777;
-            box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.3);
-        }
-        
-        .countdown-digit {
-            font-feature-settings: "tnum";
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .globe-label {
-            position: absolute;
-            color: white;
-            background-color: rgba(219, 39, 119, 0.8);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 10;
-        }
-        
-        .globe-label.visible {
-            opacity: 1;
-        }
-        
-        #cat {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 100px;
-            height: 100px;
-            background-image: url('https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f431.svg');
-            background-size: contain;
-            background-repeat: no-repeat;
-            z-index: 100;
-            animation: runAround 15s linear infinite;
-        }
-        
-        @keyframes runAround {
-            0% { transform: translateX(0) translateY(0); }
-            25% { transform: translateX(calc(100vw - 150px)) translateY(0); }
-            50% { transform: translateX(calc(100vw - 150px)) translateY(calc(100vh - 150px)); }
-            75% { transform: translateX(0) translateY(calc(100vh - 150px)); }
-            100% { transform: translateX(0) translateY(0); }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Countdown to Yuan's Birthday</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.24.0/dist/globe.gl.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #fff1f1 0%, #ffecec 50%, #ffd6d6 100%);
+      font-family: 'Arial', sans-serif;
+      color: #ff6b8b;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .globe-container { width: 100%; height: 400px; position: relative; }
+    .countdown-box {
+      background: rgba(255,255,255,0.8);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(255,105,140,0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .countdown-number {
+      font-size: 3rem; font-weight: bold;
+      background: linear-gradient(45deg,#ff6b8b,#ff8e9e);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .city-btn {
+      transition: all .3s ease; border: 2px solid #ffb6c1;
+    }
+    .city-btn:hover, .city-btn.active {
+      background: linear-gradient(45deg,#ff6b8b,#ff8e9e);
+      color: #fff; transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255,105,140,0.3);
+    }
+    .celebration {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(255,255,255,0.9);
+      display:flex; justify-content:center; align-items:center; flex-direction:column;
+      z-index:1000; opacity:0; pointer-events:none;
+      transition: opacity .5s ease;
+    }
+    .celebration.active { opacity:1; pointer-events:all; }
+    .confetti {
+      position:absolute; width:10px; height:10px;
+      opacity:.7; animation: float linear forwards;
+    }
+    @keyframes float { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(-100vh) rotate(360deg); } }
+    .live-indicator { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%{opacity:1}50%{opacity:.5}100%{opacity:1} }
+  </style>
 </head>
-<body>
-    <div class="container mx-auto px-4 py-8">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl md:text-5xl font-bold text-pink-600 mb-2">Yuan's Global Countdown</h1>
-            <p class="text-lg text-gray-600">Countdown to May 30 in different timezones</p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-4 mb-8">
-            <div id="globe-container">
-                <!-- 3D Globe will be rendered here -->
-                <div id="markers-container"></div>
-            </div>
-        </div>
-
-        <div id="city-info" class="hidden bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-pink-600" id="selected-city">Select a city</h2>
-                <div class="flex items-center">
-                    <span class="text-2xl mr-2" id="city-flag">🌐</span>
-                    <span class="text-gray-500" id="city-time">00:00:00</span>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="bg-pink-50 rounded-lg p-4">
-                    <div class="text-3xl font-bold text-pink-600 countdown-digit" id="info-days">00</div>
-                    <div class="text-gray-500">Days</div>
-                </div>
-                <div class="bg-pink-50 rounded-lg p-4">
-                    <div class="text-3xl font-bold text-pink-600 countdown-digit" id="info-hours">00</div>
-                    <div class="text-gray-500">Hours</div>
-                </div>
-                <div class="bg-pink-50 rounded-lg p-4">
-                    <div class="text-3xl font-bold text-pink-600 countdown-digit" id="info-minutes">00</div>
-                    <div class="text-gray-500">Minutes</div>
-                </div>
-                <div class="bg-pink-50 rounded-lg p-4">
-                    <div class="text-3xl font-bold text-pink-600 countdown-digit" id="info-seconds">00</div>
-                    <div class="text-gray-500">Seconds</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-pink-50 border border-pink-100 rounded-xl p-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <span class="text-2xl mr-3">🇬🇧</span>
-                    <h3 class="text-xl font-bold text-pink-600">London Countdown</h3>
-                </div>
-                <div class="flex space-x-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-pink-600 countdown-digit" id="london-days">00</div>
-                        <div class="text-gray-500 text-sm">Days</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-pink-600 countdown-digit" id="london-hours">00</div>
-                        <div class="text-gray-500 text-sm">Hours</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-pink-600 countdown-digit" id="london-minutes">00</div>
-                        <div class="text-gray-500 text-sm">Minutes</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-pink-600 countdown-digit" id="london-seconds">00</div>
-                        <div class="text-gray-500 text-sm">Seconds</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body class="flex flex-col items-center py-10 px-4">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl md:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-pink-700">
+      Countdown to Yuan's Birthday
+    </h1>
+    <p class="text-lg text-pink-600">May 30 is coming soon!</p>
+    <div class="flex items-center justify-center mt-2">
+      <span class="bg-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+        <span class="w-2 h-2 bg-red-500 rounded-full mr-1 live-indicator"></span>LIVE
+      </span>
     </div>
+  </div>
 
-    <div id="cat"></div>
+  <div class="globe-container mb-10 w-full max-w-3xl"><div id="globe"></div></div>
 
-    <script>
-        // Set the birthday date (May 30, current year)
-        const now = new Date();
-        let birthday = new Date(now.getFullYear(), 4, 30); // May is month 4 (0-indexed)
-        
-        // If birthday has already passed this year, set for next year
-        if (now > birthday) {
-            birthday = new Date(now.getFullYear() + 1, 4, 30);
-        }
-        
-        // Major cities with their coordinates (latitude, longitude)
-        const cities = [
-            { name: "London", tz: 0, lat: 51.5074, lng: -0.1278, flag: "🇬🇧" },
-            { name: "Beijing", tz: 8, lat: 39.9042, lng: 116.4074, flag: "🇨🇳" },
-            { name: "New York", tz: -4, lat: 40.7128, lng: -74.0060, flag: "🇺🇸" },
-            { name: "Tokyo", tz: 9, lat: 35.6762, lng: 139.6503, flag: "🇯🇵" },
-            { name: "Sydney", tz: 10, lat: -33.8688, lng: 151.2093, flag: "🇦🇺" },
-            { name: "Paris", tz: 1, lat: 48.8566, lng: 2.3522, flag: "🇫🇷" },
-            { name: "Dubai", tz: 4, lat: 25.2048, lng: 55.2708, flag: "🇦🇪" },
-            { name: "Rio de Janeiro", tz: -3, lat: -22.9068, lng: -43.1729, flag: "🇧🇷" },
-            { name: "Los Angeles", tz: -7, lat: 34.0522, lng: -118.2437, flag: "🇺🇸" },
-            { name: "Moscow", tz: 3, lat: 55.7558, lng: 37.6173, flag: "🇷🇺" }
-        ];
-        
-        // Three.js variables
-        let scene, camera, renderer, globe, controls;
-        let markers = [];
-        let labels = [];
-        
-        // Initialize Three.js scene
-        function initGlobe() {
-            const container = document.getElementById('globe-container');
-            
-            // Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf5f5f5);
-            
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.z = 2;
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            container.appendChild(renderer.domElement);
-            
-            // Controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.25;
-            controls.minDistance = 1.5;
-            controls.maxDistance = 3;
-            
-            // Globe
-            const geometry = new THREE.SphereGeometry(1, 64, 64);
-            const texture = new THREE.TextureLoader().load('https://cdn.jsdelivr.net/gh/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg');
-            const material = new THREE.MeshPhongMaterial({
-                map: texture,
-                specular: new THREE.Color(0x333333),
-                shininess: 5
-            });
-            globe = new THREE.Mesh(geometry, material);
-            scene.add(globe);
-            
-            // Atmosphere
-            const atmosphereGeometry = new THREE.SphereGeometry(1.02, 64, 64);
-            const atmosphereMaterial = new THREE.MeshPhongMaterial({
-                color: 0xec4899,
-                transparent: true,
-                opacity: 0.2
-            });
-            const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-            scene.add(atmosphere);
-            
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(5, 3, 5);
-            scene.add(directionalLight);
-            
-            // Add city markers
-            createCityMarkers();
-            
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize);
-            
-            // Start animation loop
-            animate();
-        }
-        
-        // Create city markers on the globe
-        function createCityMarkers() {
-            const markersContainer = document.getElementById('markers-container');
-            
-            cities.forEach((city, index) => {
-                // Convert lat/lng to 3D position
-                const phi = (90 - city.lat) * (Math.PI / 180);
-                const theta = (city.lng + 180) * (Math.PI / 180);
-                
-                const x = -Math.sin(phi) * Math.cos(theta);
-                const y = Math.cos(phi);
-                const z = Math.sin(phi) * Math.sin(theta);
-                
-                // Create HTML marker
-                const marker = document.createElement('div');
-                marker.className = 'city-marker';
-                marker.setAttribute('data-city', city.name);
-                marker.innerHTML = `<span class="sr-only">${city.name}</span>`;
-                markersContainer.appendChild(marker);
-                
-                // Create label
-                const label = document.createElement('div');
-                label.className = 'globe-label';
-                label.textContent = city.name;
-                markersContainer.appendChild(label);
-                
-                // Store references
-                markers.push({ element: marker, x, y, z });
-                labels.push({ element: label, x, y, z });
-                
-                // Add click event
-                marker.addEventListener('click', () => {
-                    selectCity(city);
-                });
-                
-                // Add hover events
-                marker.addEventListener('mouseenter', () => {
-                    label.classList.add('visible');
-                });
-                
-                marker.addEventListener('mouseleave', () => {
-                    label.classList.remove('visible');
-                });
-            });
-        }
-        
-        // Update marker positions based on camera view
-        function updateMarkers() {
-            const container = document.getElementById('globe-container');
-            const widthHalf = container.clientWidth / 2;
-            const heightHalf = container.clientHeight / 2;
-            
-            markers.forEach((marker, index) => {
-                const position = new THREE.Vector3(marker.x, marker.y, marker.z);
-                position.multiplyScalar(1.05);
-                position.project(camera);
-                
-                const x = (position.x * widthHalf) + widthHalf;
-                const y = -(position.y * heightHalf) + heightHalf;
-                
-                marker.element.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
-                marker.element.style.zIndex = (-position.z * 0.5 + 0.5) * 100000 | 0;
-                
-                // Update label position
-                const label = labels[index];
-                label.element.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
-                label.element.style.zIndex = (-position.z * 0.5 + 0.5) * 100000 | 0;
-            });
-        }
-        
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            updateMarkers();
-            renderer.render(scene, camera);
-        }
-        
-        // Handle window resize
-        function onWindowResize() {
-            const container = document.getElementById('globe-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-        
-        // Select a city and show its countdown
-        function selectCity(city) {
-            // Update UI
-            document.getElementById('selected-city').textContent = city.name;
-            document.getElementById('city-flag').textContent = city.flag;
-            
-            // Show info panel
-            document.getElementById('city-info').classList.remove('hidden');
-            
-            // Highlight marker
-            document.querySelectorAll('.city-marker').forEach(marker => {
-                if (marker.getAttribute('data-city') === city.name) {
-                    marker.classList.add('active');
-                } else {
-                    marker.classList.remove('active');
-                }
-            });
-            
-            // Update countdown
-            updateCountdown();
-        }
-        
-        // Update all countdowns
-        function updateCountdown() {
-            const now = new Date();
-            const timeUntilBirthday = birthday - now;
-            
-            if (timeUntilBirthday <= 0) {
-                // Birthday has arrived
-                document.querySelectorAll('.countdown-digit').forEach(el => {
-                    el.textContent = '00';
-                });
-                document.getElementById('city-time').textContent = 'Happy Birthday!';
-                triggerConfetti();
-                return;
-            }
-            
-            // Calculate time remaining
-            const days = Math.floor(timeUntilBirthday / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeUntilBirthday % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeUntilBirthday % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeUntilBirthday % (1000 * 60)) / 1000);
-            
-            // Update selected city display
-            if (document.getElementById('city-info').classList.contains('hidden') === false) {
-                document.getElementById('info-days').textContent = days.toString().padStart(2, '0');
-                document.getElementById('info-hours').textContent = hours.toString().padStart(2, '0');
-                document.getElementById('info-minutes').textContent = minutes.toString().padStart(2, '0');
-                document.getElementById('info-seconds').textContent = seconds.toString().padStart(2, '0');
-                
-                // Update city time
-                const city = cities.find(c => c.name === document.getElementById('selected-city').textContent);
-                if (city) {
-                    const cityTime = new Date(now.getTime() + (city.tz * 60 * 60 * 1000));
-                    document.getElementById('city-time').textContent = cityTime.toLocaleTimeString();
-                }
-            }
-            
-            // Update London countdown
-            document.getElementById('london-days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('london-hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('london-minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('london-seconds').textContent = seconds.toString().padStart(2, '0');
-        }
-        
-        // Trigger confetti effect
-        function triggerConfetti() {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1']
-            });
-        }
-        
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', () => {
-            initGlobe();
-            updateCountdown();
-            
-            // Update countdown every second
-            setInterval(updateCountdown, 1000);
-            
-            // Select London by default
-            const london = cities.find(c => c.name === "London");
-            if (london) {
-                selectCity(london);
-            }
+  <div class="countdown-box p-6 md:p-8 w-full max-w-3xl mb-10">
+    <h2 class="text-2xl font-bold text-pink-600 mb-6">Time Remaining</h2>
+    <div class="grid grid-cols-4 gap-4 text-center">
+      <div><div id="days"   class="countdown-number">00</div><div class="text-pink-600">Days</div></div>
+      <div><div id="hours"  class="countdown-number">00</div><div class="text-pink-600">Hours</div></div>
+      <div><div id="minutes"class="countdown-number">00</div><div class="text-pink-600">Minutes</div></div>
+      <div><div id="seconds"class="countdown-number">00</div><div class="text-pink-600">Seconds</div></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-3xl mb-10">
+    <button class="city-btn active" data-timezone="local"><i class="fas fa-map-marker-alt mr-2"></i>Your Time</button>
+    <button class="city-btn" data-timezone="Asia/Shanghai"><i class="fas fa-city mr-2"></i>Beijing</button>
+    <button class="city-btn" data-timezone="Europe/London"><i class="fas fa-landmark mr-2"></i>London</button>
+    <button class="city-btn" data-timezone="Australia/Sydney"><i class="fas fa-umbrella-beach mr-2"></i>Sydney</button>
+    <button class="city-btn" data-timezone="Asia/Tokyo"><i class="fas fa-torii-gate mr-2"></i>Tokyo</button>
+  </div>
+
+  <div class="relative mb-10">
+    <select id="city-select" class="bg-white border-2 border-pink-300 text-pink-700 rounded-full px-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-pink-400">
+      <option value="Europe/London">London</option>
+      <option value="local" selected>Your Local Time</option>
+      <option value="Asia/Shanghai">Beijing</option>
+      <option value="Australia/Sydney">Sydney</option>
+      <option value="Asia/Tokyo">Tokyo</option>
+    </select>
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-pink-500">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </div>
+
+  <div class="celebration" id="celebration">
+    <div class="text-center">
+      <h1 class="text-5xl md:text-7xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-pink-700">
+        Happy Birthday Yuan!
+      </h1>
+      <p class="text-xl text-pink-600 mb-8">The wait is over! Wishing you an amazing day!</p>
+      <button id="close-celebration" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all transform hover:scale-105">
+        <i class="fas fa-heart mr-2"></i>Thank You!
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 3D Globe setup
+    const globeEl = document.getElementById('globe');
+    const myGlobe = Globe()
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+      .backgroundColor('rgba(255,255,255,0)')
+      .showAtmosphere(true)
+      .atmosphereColor('#ffb6c1')
+      .atmosphereAltitude(0.2)
+      (globeEl);
+
+    myGlobe.controls().autoRotate = false;
+    myGlobe.camera().position.z = 300;
+    myGlobe.pointOfView({ lat: 51.5074, lng: -0.1278, altitude: 2 });
+
+    // City data
+    const cities = [
+      { lat:39.9042,lng:116.4074,size:0.5,color:'#ffb6c1',name:'Beijing',   timezone:'Asia/Shanghai' },
+      { lat:51.5074,lng:-0.1278,size:0.7,color:'#ff6b8b',name:'London',    timezone:'Europe/London' },
+      { lat:-33.8688,lng:151.2093,size:0.5,color:'#ffb6c1',name:'Sydney',    timezone:'Australia/Sydney' },
+      { lat:35.6762,lng:139.6503,size:0.5,color:'#ffb6c1',name:'Tokyo',     timezone:'Asia/Tokyo' }
+    ];
+
+    myGlobe.pointsData(cities)
+      .pointAltitude(0)
+      .pointRadius('size')
+      .pointColor('color')
+      .pointResolution(8)
+      .onPointClick(pt => {
+        selectedTimezone = pt.timezone;
+        updateCitySelection(pt.timezone);
+        updateCountdown();
+        cities.forEach(c => c.size = 0.5);
+        pt.size = 0.7;
+        myGlobe.pointsData([...cities]);
+      });
+
+    let selectedTimezone = 'local';
+
+    // DST-aware target date calc
+    function getTargetDateInTimezone(timezone) {
+      const now = new Date(), yr = now.getFullYear();
+
+      function computeForYear(y) {
+        if (timezone === 'local') return new Date(y,4,30,0,0,0,0);
+        const baseUTC = Date.UTC(y,4,30,0,0,0);
+        const dtf = new Intl.DateTimeFormat('en-US',{
+          timeZone: timezone,
+          hour12: false,
+          year:'numeric',month:'2-digit',day:'2-digit',
+          hour:'2-digit',minute:'2-digit',second:'2-digit',
+          timeZoneName:'short'
         });
-    </script>
+        const parts = dtf.formatToParts(new Date(baseUTC));
+        const tz = parts.find(p=>p.type==='timeZoneName')?.value||'';
+        const m = /GMT([+-]\d{1,2})(?::?(\d{2}))?/.exec(tz);
+        let off = 0;
+        if (m) {
+          const sign = m[1].startsWith('-')?-1:1;
+          off = sign*(Math.abs(parseInt(m[1],10))*60 + (m[2]?parseInt(m[2],10):0));
+        }
+        return new Date(baseUTC - off*60000);
+      }
+
+      let tgt = computeForYear(yr);
+      if (tgt <= now) tgt = computeForYear(yr+1);
+      return tgt;
+    }
+
+    function updateCountdown() {
+      const now = new Date(), tgt = getTargetDateInTimezone(selectedTimezone), diff = tgt - now;
+      if (diff <= 0) {
+        document.getElementById('celebration').classList.add('active');
+        createConfetti();
+        return;
+      }
+      const d = Math.floor(diff/86400000),
+            h = Math.floor((diff%86400000)/3600000),
+            m = Math.floor((diff%3600000)/60000),
+            s = Math.floor((diff%60000)/1000);
+      document.getElementById('days')   .textContent = String(d).padStart(2,'0');
+      document.getElementById('hours')  .textContent = String(h).padStart(2,'0');
+      document.getElementById('minutes').textContent = String(m).padStart(2,'0');
+      document.getElementById('seconds').textContent = String(s).padStart(2,'0');
+    }
+
+    function updateCitySelection(tz) {
+      document.querySelectorAll('.city-btn').forEach(b=>b.classList.remove('active'));
+      const btn = document.querySelector(`.city-btn[data-timezone="${tz}"]`);
+      if (btn) btn.classList.add('active');
+      document.getElementById('city-select').value = tz;
+      cities.forEach(c=>c.size=0.5);
+      const c = cities.find(c=>c.timezone===tz);
+      if (c) { c.size=0.7; myGlobe.pointsData([...cities]); }
+    }
+
+    document.querySelectorAll('.city-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        selectedTimezone = btn.dataset.timezone;
+        updateCitySelection(selectedTimezone);
+        updateCountdown();
+      });
+    });
+    document.getElementById('city-select').addEventListener('change', function(){
+      selectedTimezone = this.value;
+      updateCitySelection(selectedTimezone);
+      updateCountdown();
+    });
+    document.getElementById('close-celebration').addEventListener('click', ()=>{
+      document.getElementById('celebration').classList.remove('active');
+    });
+
+    function createConfetti() {
+      const ctr = document.getElementById('celebration');
+      for (let i=0;i<100;i++){
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left  = Math.random()*100+'vw';
+        c.style.width = Math.random()*10+5+'px';
+        c.style.height= Math.random()*10+5+'px';
+        c.style.backgroundColor = `hsl(${Math.random()*60+330},100%,${Math.random()*30+60}%)`;
+        c.style.animationDuration = `${Math.random()*3+2}s`;
+        ctr.appendChild(c);
+        setTimeout(()=>c.remove(),5000);
+      }
+    }
+
+    // start
+    updateCitySelection(selectedTimezone);
+    setInterval(updateCountdown,1000);
+    updateCountdown();
+  </script>
 </body>
 </html>
